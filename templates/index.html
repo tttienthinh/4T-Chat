@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>4T Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.slim.min.js"
+    integrity="sha512-6ORWJX/LrnSjBzwefdNUyLCMTIsGoNP6NftMy2UAm1JBm6PRZCO1d7OHBStWpVFZLO+RerTvqX/Z9mBFfCJZ4A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+    integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+    crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div id="messages">
+
+  </div>
+  <input type="text" id="username" placeholder="Pseudo" required>
+  <input type="text" id="message" placeholder="Message" required>
+  <button id="sendBtn">Send</button>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+      socket.on("connect", function () {
+        socket.send("User connected !")
+      });
+
+      socket.on("message", function (data) {
+        $("#messages").append($("<p>").text(data))
+      });
+
+      let envoie = () => {
+        var message = $("#message").val();
+        var username = $("#username").val();
+        if (message != "" && username != "") {
+          socket.send(username + ": " + message);
+          $("#message").val("");
+        };
+      }
+
+      $("#sendBtn").on("click", envoie);
+      $('#message').keypress(function (event) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') {
+          envoie();
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

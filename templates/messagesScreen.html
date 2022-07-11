@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<!--  This file has been downloaded from bootdey.com @bootdey on twitter -->
+	<!--  All snippets are MIT license http://bootdey.com/license -->
+	<title>4T-Chat</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="shortcut icon" href="{{ url_for('static', filename='1024-named.jpg') }}">
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+	<link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.slim.min.js"
+		integrity="sha512-6ORWJX/LrnSjBzwefdNUyLCMTIsGoNP6NftMy2UAm1JBm6PRZCO1d7OHBStWpVFZLO+RerTvqX/Z9mBFfCJZ4A=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+		integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+		crossorigin="anonymous"></script>
+</head>
+
+<body>
+	<main class="content">
+		<div class="container p-0">
+			<div class="col-12 col-lg-7 col-xl-9">
+				<div class="flex-grow-0 py-3 px-4">
+					<input type="text" class="form-control" placeholder="Prénom" id="username">
+				</div>
+				<div class="position-relative">
+					<div class="chat-messages p-4" id="messages">
+						<!--
+							Les messages seront ajoutés ici
+						-->
+					</div>
+				</div>
+				<div class="flex-grow-0 py-3 px-4 border-top">
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="Tape ton message" id="message">
+						<button class="btn btn-primary" id="sendBtn">Envoie</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+		</div>
+	</main>
+
+	<script type="text/javascript">
+		let test = "";
+		$(document).ready(function () {
+			var socket = io.connect('https://' + document.domain + ':' + location.port);
+			socket.on("connect", function () {
+				socket.send("User connected !")
+			});
+
+			socket.on("message", function (data) {
+				console.log(data);
+				$("#messages").append($("<p>").text(data))
+			});
+
+			socket.on("json", function (data) {
+				$("#messages").empty();
+				var username = $("#username").val();
+				data.forEach(element => {
+					test = element;
+					let bulle = "";
+					if (element["name"] == username) {
+						bulle = '\
+<div class="chat-message-right pb-4">\
+	<div>\
+        <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">\
+        <div class="text-muted small text-nowrap mt-2">{ time }</div>\
+    </div>\
+    <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">\
+        <div class="font-weight-bold mb-1">{ name }</div>\
+        { message }\
+    </div>\
+</div>';
+					} else {
+						bulle = '\
+<div class="chat-message-left pb-4">\
+    <div>\
+        <img src="https://bootdey.com/img/Content/avatar/avatar3.png" class="rounded-circle mr-1" alt="Sharon Lessman"\
+            width="40" height="40">\
+        <div class="text-muted small text-nowrap mt-2">{ time }</div>\
+    </div>\
+    <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">\
+        <div class="font-weight-bold mb-1">{ name }</div>\
+        { message }\
+    </div>\
+</div>'
+					}
+					bulle = bulle.replace("{ name }", element["name"]);
+					bulle = bulle.replace("{ time }", element["time"]);
+					bulle = bulle.replace("{ message }", element["message"]);
+					$("#messages").append(bulle)
+				});
+			})
+
+			let envoie = () => {
+				var message = $("#message").val();
+				var username = $("#username").val();
+				if (message != "" && username != "") {
+					/* 
+					socket.send(username + ": " + message);
+					 */
+					socket.emit("json", { "name": username, "message": message })
+					$("#message").val("");
+				};
+			}
+
+			$("#sendBtn").on("click", envoie);
+			$('#message').keypress(function (event) {
+				var keycode = (event.keyCode ? event.keyCode : event.which);
+				if (keycode == '13') {
+					envoie();
+				}
+			});
+		});
+	</script>
+</body>
+
+</html>
